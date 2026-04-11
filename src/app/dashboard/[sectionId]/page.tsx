@@ -523,18 +523,18 @@ export default function SectionPage() {
   if (loading) {
     return (
       <main className="flex-1 min-h-0 flex flex-col overflow-hidden animate-pulse">
-        <div className="px-4 sm:px-8 pt-16 sm:pt-6 pb-6 border-b border-neutral-200 dark:border-neutral-800 space-y-3">
+        <div className="px-4 sm:px-8 pt-14 sm:pt-6 pb-5 border-b border-neutral-200 dark:border-neutral-800 space-y-2.5">
           <div className="h-8 w-48 rounded bg-neutral-200 dark:bg-neutral-800" />
           <div className="h-4 w-24 rounded bg-neutral-200 dark:bg-neutral-800" />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
-          <div className="h-12 w-full rounded-lg bg-neutral-200 dark:bg-neutral-800 mb-6" />
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4">
+          <div className="h-11 w-full rounded-lg bg-neutral-200 dark:bg-neutral-800 mb-5" />
           <div className="space-y-2">
             {[...Array(5)].map((_, index) => (
               <div
                 key={index}
-                className="h-[54px] w-full rounded-xl bg-neutral-200 dark:bg-neutral-800"
+                className="h-12 w-full rounded-xl bg-neutral-200 dark:bg-neutral-800"
               />
             ))}
           </div>
@@ -545,46 +545,48 @@ export default function SectionPage() {
 
   return (
     <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
-      <div className="px-4 sm:px-8 pt-16 sm:pt-6 pb-6 border-b border-neutral-200 dark:border-neutral-800">
-        <h2 className="text-2xl font-semibold text-black dark:text-white">
+      <div className="px-4 sm:px-8 pt-14 sm:pt-6 pb-5 border-b border-neutral-200 dark:border-neutral-800">
+        <h2 className="text-xl sm:text-2xl font-semibold text-black dark:text-white">
           {section?.name}
         </h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 mt-1">
           {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-6 pb-28 sm:pb-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6 pb-28 sm:pb-6">
         <form onSubmit={addTask} className="mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-3">
-            <input
-              type="text"
-              placeholder="Add a new task..."
-              value={newTask}
-              onChange={e => setNewTask(e.target.value)}
-              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-            />
-            <button
-              type="button"
-              onClick={startVoiceInput}
-              disabled={isListening}
-              className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-200 px-3 py-3 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition disabled:opacity-60"
-              aria-label="Speak task"
-            >
-              <Mic size={16} />
-              {isListening ? 'Listening...' : 'Mic'}
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto] gap-2.5 sm:gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Add a new task..."
+                value={newTask}
+                onChange={e => setNewTask(e.target.value)}
+                className="flex-1 w-full min-w-0 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg pl-4 pr-12 py-2.5 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+              />
+              <button
+                type="button"
+                onClick={startVoiceInput}
+                disabled={isListening}
+                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-md text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition disabled:opacity-60"
+                aria-label={isListening ? 'Listening for task input' : 'Speak task'}
+                title={isListening ? 'Listening...' : 'Speak task'}
+              >
+                <Mic size={16} className={isListening ? 'animate-pulse text-red-500' : ''} />
+              </button>
+            </div>
             <input
               type="datetime-local"
               value={newDueAt}
               onChange={e => setNewDueAt(e.target.value)}
               required
-              className="bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+              className="w-full min-w-0 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
             />
             <button
               type="submit"
               disabled={!canAddTask}
-              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-3 rounded-lg transition font-medium disabled:bg-neutral-300 disabled:text-neutral-500 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-700"
+              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-2.5 rounded-lg transition text-sm font-medium disabled:bg-neutral-300 disabled:text-neutral-500 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-700"
             >
               {adding ? '...' : 'Add'}
             </button>
@@ -592,7 +594,7 @@ export default function SectionPage() {
 
           {(suggestingTitles || titleSuggestions.length > 0) && (
             <div className="mt-3 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+              <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 mb-2">
                 {suggestingTitles ? 'Improving title...' : 'Suggested improved titles'}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -601,7 +603,7 @@ export default function SectionPage() {
                     key={suggestion}
                     type="button"
                     onClick={() => setNewTask(suggestion)}
-                    className="text-xs px-3 py-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+                    className="text-[11px] sm:text-xs px-3 py-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
                   >
                     {suggestion}
                   </button>
@@ -611,22 +613,45 @@ export default function SectionPage() {
           )}
 
           {voiceError && (
-            <p className="mt-2 text-xs text-red-600 dark:text-red-400">{voiceError}</p>
+            <p className="mt-2 text-[11px] sm:text-xs text-red-600 dark:text-red-400">{voiceError}</p>
           )}
 
           {duplicateTask && (
-            <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+            <p className="mt-2 text-[11px] sm:text-xs text-red-600 dark:text-red-400">
               Duplicate task detected. Similar to: {duplicateTask.title}
             </p>
           )}
         </form>
 
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex gap-2 flex-wrap">
+        <div className="flex items-start sm:items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex sm:hidden w-full gap-2">
+            <select
+              value={taskFilter}
+              onChange={e => setTaskFilter(e.target.value as TaskFilter)}
+              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2 text-xs outline-none"
+              aria-label="Filter tasks"
+            >
+              <option value="all">All ({taskCounts.all})</option>
+              <option value="completed">Completed ({taskCounts.completed})</option>
+              <option value="pending">Not Finished ({taskCounts.pending})</option>
+            </select>
+
+            <select
+              value={taskSort}
+              onChange={e => setTaskSort(e.target.value as TaskSort)}
+              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2 text-xs outline-none"
+              aria-label="Sort tasks"
+            >
+              <option value="recent">Recent Added</option>
+              <option value="due">Nearest Due Date</option>
+            </select>
+          </div>
+
+          <div className="hidden sm:flex gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setTaskFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs sm:text-sm border transition ${
                 taskFilter === 'all'
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
                   : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
@@ -637,7 +662,7 @@ export default function SectionPage() {
             <button
               type="button"
               onClick={() => setTaskFilter('completed')}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs sm:text-sm border transition ${
                 taskFilter === 'completed'
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
                   : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
@@ -648,7 +673,7 @@ export default function SectionPage() {
             <button
               type="button"
               onClick={() => setTaskFilter('pending')}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs sm:text-sm border transition ${
                 taskFilter === 'pending'
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
                   : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
@@ -658,11 +683,11 @@ export default function SectionPage() {
             </button>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="hidden sm:flex gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setTaskSort('recent')}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs sm:text-sm border transition ${
                 taskSort === 'recent'
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
                   : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
@@ -673,7 +698,7 @@ export default function SectionPage() {
             <button
               type="button"
               onClick={() => setTaskSort('due')}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs sm:text-sm border transition ${
                 taskSort === 'due'
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
                   : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
@@ -696,7 +721,7 @@ export default function SectionPage() {
               return (
             <div
               key={task.id}
-              className={`group flex items-center gap-4 rounded-xl px-4 py-3 transition border ${
+              className={`group flex items-start sm:items-center gap-3 rounded-xl px-3 py-2.5 transition border ${
                 isOverdue
                   ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900'
                   : 'bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
@@ -721,11 +746,11 @@ export default function SectionPage() {
                     type="datetime-local"
                     value={editTaskDueAt}
                     onChange={e => setEditTaskDueAt(e.target.value)}
-                    className="bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                    className="w-full sm:w-auto bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
                   />
                 </div>
               ) : (
-                <span className={`flex-1 text-sm ${
+                <span className={`flex-1 text-sm leading-snug ${
                   task.is_completed
                     ? 'line-through text-neutral-400'
                     : isOverdue
@@ -734,7 +759,7 @@ export default function SectionPage() {
                 }`}>
                   {task.title}
                   {task.due_at && (
-                    <span className={`block text-xs mt-1 ${
+                    <span className={`block text-[11px] sm:text-xs mt-1 ${
                       isOverdue
                         ? 'text-red-600 dark:text-red-400'
                         : 'text-neutral-500 dark:text-neutral-400'
