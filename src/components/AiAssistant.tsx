@@ -210,15 +210,16 @@ export default function AiAssistant() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-black shadow-lg hover:scale-105 transition"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-black shadow-lg hover:scale-105 transition"
           aria-label="Open AI assistant"
         >
-          <MessageCircle size={22} className="mx-auto" />
+          <MessageCircle size={20} className="mx-auto sm:hidden" />
+          <MessageCircle size={22} className="mx-auto hidden sm:block" />
         </button>
       )}
 
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-24px)] rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-1rem)] sm:w-[360px] max-w-[calc(100vw-1rem)] rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-black grid place-items-center">
@@ -239,7 +240,7 @@ export default function AiAssistant() {
             </button>
           </div>
 
-          <div className="px-3 py-3 h-[320px] overflow-y-auto space-y-2 bg-neutral-50 dark:bg-neutral-950/40">
+          <div className="px-3 py-3 h-[300px] sm:h-[320px] overflow-y-auto space-y-2 bg-neutral-50 dark:bg-neutral-950/40">
             {messages.map(message => (
               <div
                 key={message.id}
