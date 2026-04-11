@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
-import { Trash2 } from 'lucide-react'
+import { Pencil, Trash2, X } from 'lucide-react'
 
 type Task = {
   id: string
   title: string
   is_completed: boolean
   created_at: string
+  due_at: string | null
 }
 
 type Section = {
@@ -17,14 +18,73 @@ type Section = {
   name: string
 }
 
+type TaskFilter = 'all' | 'completed' | 'pending'
+type TaskSort = 'recent' | 'due'
+
 export default function SectionPage() {
   const params = useParams()
   const sectionId = params.sectionId as string
   const [section, setSection] = useState<Section | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [newTask, setNewTask] = useState('')
+  const [newDueAt, setNewDueAt] = useState('')
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
+  const [taskSort, setTaskSort] = useState<TaskSort>('recent')
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [editTaskTitle, setEditTaskTitle] = useState('')
+  const [editTaskDueAt, setEditTaskDueAt] = useState('')
+  const [savingEdit, setSavingEdit] = useState(false)
   const [adding, setAdding] = useState(false)
   const [loading, setLoading] = useState(true)
+  const canAddTask = newTask.trim().length > 0 && newDueAt.trim().length > 0 && !adding
+  const canSaveEdit = editTaskTitle.trim().length > 0 && editTaskDueAt.trim().length > 0 && !savingEdit
+
+  function toDateTimeLocalValue(value: string | null) {
+    if (!value) return ''
+    const date = new Date(value)
+    const tzOffsetMs = date.getTimezoneOffset() * 60000
+    return new Date(date.getTime() - tzOffsetMs).toISOString().slice(0, 16)
+  }
+
+  const filteredTasks = useMemo(() => {
+    const compareRecent = (a: Task, b: Task) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+
+    const compareDueNearest = (a: Task, b: Task) => {
+      if (a.due_at && b.due_at) {
+        return new Date(a.due_at).getTime() - new Date(b.due_at).getTime()
+      }
+      if (a.due_at && !b.due_at) return -1
+      if (!a.due_at && b.due_at) return 1
+      return compareRecent(a, b)
+    }
+
+    const compareTasks = taskSort === 'due' ? compareDueNearest : compareRecent
+
+    let items = [...tasks]
+
+    if (taskFilter === 'completed') {
+      items = items.filter(task => task.is_completed)
+      return items.sort(compareTasks)
+    }
+
+    if (taskFilter === 'pending') {
+      items = items.filter(task => !task.is_completed)
+      return items.sort(compareTasks)
+    }
+
+    return items.sort(compareTasks)
+  }, [tasks, taskFilter, taskSort])
+
+  const taskCounts = useMemo(() => {
+    const completed = tasks.filter(task => task.is_completed).length
+    const pending = tasks.length - completed
+    return {
+      all: tasks.length,
+      completed,
+      pending
+    }
+  }, [tasks])
 
   useEffect(() => {
     if (sectionId) {
@@ -54,15 +114,17 @@ export default function SectionPage() {
 
   async function addTask(e: React.FormEvent) {
     e.preventDefault()
-    if (!newTask.trim()) return
+    if (!newTask.trim() || !newDueAt.trim()) return
     setAdding(true)
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('tasks').insert({
       title: newTask.trim(),
       user_id: user!.id,
-      section_id: sectionId
+      section_id: sectionId,
+      due_at: newDueAt ? new Date(newDueAt).toISOString() : null
     })
     setNewTask('')
+    setNewDueAt('')
     await fetchTasks()
     setAdding(false)
   }
@@ -78,6 +140,33 @@ export default function SectionPage() {
   async function deleteTask(id: string) {
     await supabase.from('tasks').delete().eq('id', id)
     await fetchTasks()
+  }
+
+  function startEditTask(task: Task) {
+    setEditingTaskId(task.id)
+    setEditTaskTitle(task.title)
+    setEditTaskDueAt(toDateTimeLocalValue(task.due_at))
+  }
+
+  function cancelEditTask() {
+    setEditingTaskId(null)
+    setEditTaskTitle('')
+    setEditTaskDueAt('')
+  }
+
+  async function saveTaskEdit(taskId: string) {
+    if (!editTaskTitle.trim() || !editTaskDueAt.trim()) return
+    setSavingEdit(true)
+    await supabase
+      .from('tasks')
+      .update({
+        title: editTaskTitle.trim(),
+        due_at: new Date(editTaskDueAt).toISOString()
+      })
+      .eq('id', taskId)
+    await fetchTasks()
+    cancelEditTask()
+    setSavingEdit(false)
   }
 
   if (loading) {
@@ -110,7 +199,7 @@ export default function SectionPage() {
           {section?.name}
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+          {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
         </p>
       </div>
 
@@ -121,49 +210,190 @@ export default function SectionPage() {
             placeholder="Add a new task..."
             value={newTask}
             onChange={e => setNewTask(e.target.value)}
-            className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+          />
+          <input
+            type="datetime-local"
+            value={newDueAt}
+            onChange={e => setNewDueAt(e.target.value)}
+            required
+            className="bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
           />
           <button
             type="submit"
-            disabled={adding}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg transition font-medium"
+            disabled={!canAddTask}
+            className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-3 rounded-lg transition font-medium"
           >
             {adding ? '...' : 'Add'}
           </button>
         </form>
 
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setTaskFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+                taskFilter === 'all'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
+                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
+              }`}
+            >
+              All ({taskCounts.all})
+            </button>
+            <button
+              type="button"
+              onClick={() => setTaskFilter('completed')}
+              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+                taskFilter === 'completed'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
+                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
+              }`}
+            >
+              Completed ({taskCounts.completed})
+            </button>
+            <button
+              type="button"
+              onClick={() => setTaskFilter('pending')}
+              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+                taskFilter === 'pending'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
+                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
+              }`}
+            >
+              Not Finished ({taskCounts.pending})
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setTaskSort('recent')}
+              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+                taskSort === 'recent'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
+                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
+              }`}
+            >
+              Recent Added
+            </button>
+            <button
+              type="button"
+              onClick={() => setTaskSort('due')}
+              className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+                taskSort === 'due'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white'
+                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-800'
+              }`}
+            >
+              Nearest Due Date
+            </button>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2">
-          {tasks.length === 0 && (
+          {filteredTasks.length === 0 && (
             <p className="text-neutral-400 text-sm text-center py-16">
               No tasks yet. Add one above!
             </p>
           )}
-          {tasks.map(task => (
+          {filteredTasks.map(task => {
+              const isOverdue = Boolean(task.due_at) && !task.is_completed && new Date(task.due_at as string) < new Date()
+              const isEditing = editingTaskId === task.id
+              return (
             <div
               key={task.id}
-              className="group flex items-center gap-4 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl px-4 py-3 transition"
+              className={`group flex items-center gap-4 rounded-xl px-4 py-3 transition border ${
+                isOverdue
+                  ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900'
+                  : 'bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
+              }`}
             >
               <input
                 type="checkbox"
                 checked={task.is_completed}
                 onChange={() => toggleTask(task)}
-                className="w-4 h-4 accent-blue-500 cursor-pointer"
+                disabled={isEditing || savingEdit}
+                className="w-4 h-4 accent-neutral-700 dark:accent-neutral-300 cursor-pointer"
               />
-              <span className={`flex-1 text-sm ${
-                task.is_completed
-                  ? 'line-through text-neutral-400'
-                  : 'text-black dark:text-white'
-              }`}>
-                {task.title}
-              </span>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-400 transition"
-              >
-                <Trash2 size={14} />
-              </button>
+              {isEditing ? (
+                <div className="flex-1 flex items-center gap-2 flex-wrap">
+                  <input
+                    type="text"
+                    value={editTaskTitle}
+                    onChange={e => setEditTaskTitle(e.target.value)}
+                    className="flex-1 min-w-[220px] bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                  />
+                  <input
+                    type="datetime-local"
+                    value={editTaskDueAt}
+                    onChange={e => setEditTaskDueAt(e.target.value)}
+                    className="bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                  />
+                </div>
+              ) : (
+                <span className={`flex-1 text-sm ${
+                  task.is_completed
+                    ? 'line-through text-neutral-400'
+                    : isOverdue
+                    ? 'text-red-700 dark:text-red-300'
+                    : 'text-black dark:text-white'
+                }`}>
+                  {task.title}
+                  {task.due_at && (
+                    <span className={`block text-xs mt-1 ${
+                      isOverdue
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-neutral-500 dark:text-neutral-400'
+                    }`}>
+                      Due: {new Date(task.due_at).toLocaleString()}
+                    </span>
+                  )}
+                </span>
+              )}
+              {isEditing ? (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => saveTaskEdit(task.id)}
+                    disabled={!canSaveEdit}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-black disabled:opacity-50"
+                  >
+                    {savingEdit ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEditTask}
+                    disabled={savingEdit}
+                    className="p-2 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 transition"
+                    aria-label="Cancel edit"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                  <button
+                    type="button"
+                    onClick={() => startEditTask(task)}
+                    className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition"
+                    aria-label="Edit task"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTask(task.id)}
+                    className="text-neutral-400 hover:text-red-400 transition"
+                    aria-label="Delete task"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
-          ))}
+              )
+            })}
         </div>
       </div>
     </main>

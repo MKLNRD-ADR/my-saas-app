@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import ThemeToggle from './ThemeToggle'
-import { Plus, Trash2, LayoutList, LogOut } from 'lucide-react'
+import { Plus, Trash2, LayoutList, LogOut, Pencil, Check, X } from 'lucide-react'
 
 type Section = {
   id: string
@@ -20,6 +20,9 @@ export default function Sidebar() {
   const [adding, setAdding] = useState(false)
   const [showInput, setShowInput] = useState(false)
   const [sectionsLoading, setSectionsLoading] = useState(true)
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
+  const [editingSectionName, setEditingSectionName] = useState('')
+  const [renaming, setRenaming] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -69,6 +72,28 @@ export default function Sidebar() {
     router.push('/dashboard')
   }
 
+  function startRenameSection(section: Section) {
+    setEditingSectionId(section.id)
+    setEditingSectionName(section.name)
+  }
+
+  function cancelRenameSection() {
+    setEditingSectionId(null)
+    setEditingSectionName('')
+  }
+
+  async function saveRenameSection(id: string) {
+    if (!editingSectionName.trim()) return
+    setRenaming(true)
+    await supabase
+      .from('sections')
+      .update({ name: editingSectionName.trim() })
+      .eq('id', id)
+    await fetchSections()
+    cancelRenameSection()
+    setRenaming(false)
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
@@ -106,13 +131,13 @@ export default function Sidebar() {
               value={newSection}
               onChange={e => setNewSection(e.target.value)}
               autoFocus
-              className="w-full text-sm bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-sm bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
             />
             <div className="flex gap-2 mt-2">
               <button
                 type="submit"
                 disabled={adding}
-                className="flex-1 text-xs bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded-lg transition"
+                className="flex-1 text-xs bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black py-1.5 rounded-lg transition"
               >
                 {adding ? 'Adding...' : 'Add'}
               </button>
@@ -147,7 +172,11 @@ export default function Sidebar() {
         {!sectionsLoading && sections.map(section => (
           <div
             key={section.id}
-            onClick={() => router.push(`/dashboard/${section.id}`)}
+            onClick={() => {
+              if (editingSectionId !== section.id) {
+                router.push(`/dashboard/${section.id}`)
+              }
+            }}
             className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer mb-0.5 transition ${
               params?.sectionId === section.id
                 ? 'bg-neutral-200 dark:bg-neutral-700 text-black dark:text-white'
@@ -156,14 +185,52 @@ export default function Sidebar() {
           >
             <div className="flex items-center gap-2 min-w-0">
               <LayoutList size={14} className="flex-shrink-0 text-neutral-400" />
-              <span className="text-sm truncate">{section.name}</span>
+              {editingSectionId === section.id ? (
+                <input
+                  type="text"
+                  value={editingSectionName}
+                  onChange={e => setEditingSectionName(e.target.value)}
+                  onClick={e => e.stopPropagation()}
+                  autoFocus
+                  className="text-sm w-full bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded px-2 py-1 outline-none"
+                />
+              ) : (
+                <span className="text-sm truncate">{section.name}</span>
+              )}
             </div>
-            <button
-              onClick={e => { e.stopPropagation(); deleteSection(section.id) }}
-              className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-400 transition flex-shrink-0"
-            >
-              <Trash2 size={13} />
-            </button>
+            {editingSectionId === section.id ? (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={e => { e.stopPropagation(); saveRenameSection(section.id) }}
+                  disabled={renaming || !editingSectionName.trim()}
+                  className="text-neutral-400 hover:text-green-500 transition disabled:opacity-40"
+                >
+                  <Check size={13} />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); cancelRenameSection() }}
+                  disabled={renaming}
+                  className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition disabled:opacity-40"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
+                <button
+                  onClick={e => { e.stopPropagation(); startRenameSection(section) }}
+                  className="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition"
+                >
+                  <Pencil size={13} />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); deleteSection(section.id) }}
+                  className="text-neutral-400 hover:text-red-400 transition"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
