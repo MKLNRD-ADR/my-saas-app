@@ -5,18 +5,18 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#212121] text-white">
 
       {/* navbar */}
-      <nav className="flex items-center justify-between px-8 py-5">
+      <nav className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5 gap-3">
         <span className="text-lg font-semibold tracking-tight">TaskFlow</span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/login"
-            className="text-sm text-neutral-400 hover:text-white transition px-4 py-2"
+            className="text-xs sm:text-sm text-neutral-400 hover:text-white transition px-2 sm:px-4 py-2"
           >
             Log in
           </Link>
           <Link
             href="/signup"
-            className="text-sm bg-white text-black px-5 py-2 rounded-full font-medium hover:bg-neutral-100 transition"
+            className="text-xs sm:text-sm bg-white text-black px-4 sm:px-5 py-2 rounded-full font-medium hover:bg-neutral-100 transition"
           >
             Get started
           </Link>
@@ -24,17 +24,17 @@ export default function LandingPage() {
       </nav>
 
       {/* hero */}
-      <section className="max-w-3xl mx-auto px-8 pt-24 pb-16 text-center">
+      <section className="max-w-3xl mx-auto px-4 sm:px-8 pt-14 sm:pt-24 pb-12 sm:pb-16 text-center">
         <div className="inline-block text-xs font-medium bg-[#2f2f2f] text-neutral-300 px-4 py-1.5 rounded-full mb-6 border border-neutral-700">
           actually free. no credit card.
         </div>
-        <h1 className="text-5xl font-bold leading-tight mb-6 tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-bold leading-tight mb-5 sm:mb-6 tracking-tight">
           stop losing track of<br />what needs to get done
         </h1>
-        <p className="text-lg text-neutral-400 mb-10 max-w-xl mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg text-neutral-400 mb-8 sm:mb-10 max-w-xl mx-auto leading-relaxed">
           TaskFlow keeps your tasks organized by section so you always know what to work on next. no bloat, no nonsense.
         </p>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link
             href="/signup"
             className="bg-white text-black px-7 py-3 rounded-full font-medium hover:bg-neutral-100 transition text-sm"
@@ -51,9 +51,10 @@ export default function LandingPage() {
       </section>
 
       {/* fake app preview */}
-      <section className="max-w-4xl mx-auto px-8 pb-24">
+      <section className="max-w-4xl mx-auto px-4 sm:px-8 pb-16 sm:pb-24">
         <div className="rounded-2xl border border-neutral-700 overflow-hidden">
-          <div className="flex h-96">
+          <div className="h-[230px] sm:h-96">
+            <div className="flex h-96 w-[760px] origin-top-left scale-[0.58] sm:w-full sm:scale-100">
             {/* fake sidebar */}
             <div className="w-56 bg-[#2a2a2a] border-r border-neutral-700 p-4 flex flex-col gap-1">
               <p className="text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3 px-2">TaskFlow</p>
@@ -72,7 +73,7 @@ export default function LandingPage() {
             </div>
 
             {/* fake main */}
-            <div className="flex-1 bg-[#212121] p-6">
+            <div className="flex-1 bg-[#212121] p-4 sm:p-6">
               <h3 className="text-lg font-semibold mb-1 text-white">Work stuff</h3>
               <p className="text-xs text-neutral-500 mb-6">4 tasks</p>
               <div className="flex flex-col gap-2">
@@ -108,15 +109,16 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* features */}
-      <section className="max-w-5xl mx-auto px-8 pb-24">
+      <section className="max-w-5xl mx-auto px-4 sm:px-8 pb-16 sm:pb-24">
         <div className="text-center mb-10">
           <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-2">Everything Included</p>
-          <h2 className="text-3xl font-bold tracking-tight">All TaskFlow Features</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">All TaskFlow Features</h2>
           <p className="text-neutral-400 text-sm mt-3 max-w-2xl mx-auto">
             Built for real daily use: fast task entry, AI cleanup, smart duplicate checks, voice input, and a floating assistant that can answer across all your sections.
           </p>
@@ -170,8 +172,8 @@ export default function LandingPage() {
       </section>
 
       {/* footer cta */}
-      <section className="border-t border-neutral-700 px-8 py-16 text-center">
-        <h2 className="text-3xl font-bold mb-4 tracking-tight">just try it</h2>
+      <section className="border-t border-neutral-700 px-4 sm:px-8 py-12 sm:py-16 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4 tracking-tight">just try it</h2>
         <p className="text-neutral-400 mb-8 text-sm">takes 30 seconds to sign up. no email confirmation nonsense.</p>
         <Link
           href="/signup"

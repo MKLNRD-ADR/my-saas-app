@@ -523,12 +523,12 @@ export default function SectionPage() {
   if (loading) {
     return (
       <main className="flex-1 flex flex-col overflow-hidden animate-pulse">
-        <div className="px-8 py-6 border-b border-neutral-200 dark:border-neutral-800 space-y-3">
+        <div className="px-4 sm:px-8 pt-16 sm:pt-6 pb-6 border-b border-neutral-200 dark:border-neutral-800 space-y-3">
           <div className="h-8 w-48 rounded bg-neutral-200 dark:bg-neutral-800" />
           <div className="h-4 w-24 rounded bg-neutral-200 dark:bg-neutral-800" />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
           <div className="h-12 w-full rounded-lg bg-neutral-200 dark:bg-neutral-800 mb-6" />
           <div className="space-y-2">
             {[...Array(5)].map((_, index) => (
@@ -545,7 +545,7 @@ export default function SectionPage() {
 
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
-      <div className="px-8 py-6 border-b border-neutral-200 dark:border-neutral-800">
+      <div className="px-4 sm:px-8 pt-16 sm:pt-6 pb-6 border-b border-neutral-200 dark:border-neutral-800">
         <h2 className="text-2xl font-semibold text-black dark:text-white">
           {section?.name}
         </h2>
@@ -554,9 +554,9 @@ export default function SectionPage() {
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
         <form onSubmit={addTask} className="mb-6">
-          <div className="flex gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-3">
             <input
               type="text"
               placeholder="Add a new task..."
@@ -622,7 +622,7 @@ export default function SectionPage() {
         </form>
 
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setTaskFilter('all')}
@@ -658,7 +658,7 @@ export default function SectionPage() {
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setTaskSort('recent')}
@@ -715,7 +715,7 @@ export default function SectionPage() {
                     type="text"
                     value={editTaskTitle}
                     onChange={e => setEditTaskTitle(e.target.value)}
-                    className="flex-1 min-w-[220px] bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                    className="flex-1 w-full sm:min-w-[220px] bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 text-black dark:text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
                   />
                   <input
                     type="datetime-local"
@@ -765,7 +765,7 @@ export default function SectionPage() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
                   <button
                     type="button"
                     onClick={() => startEditTask(task)}
