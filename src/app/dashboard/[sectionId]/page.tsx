@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
 import { Mic, Pencil, Trash2, X } from 'lucide-react'
@@ -269,6 +269,7 @@ export default function SectionPage() {
   const [newTask, setNewTask] = useState('')
   const [newDueAt, setNewDueAt] = useState('')
   const [showDueAtPicker, setShowDueAtPicker] = useState(false)
+  const dueAtInputRef = useRef<HTMLInputElement | null>(null)
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
   const [suggestingTitles, setSuggestingTitles] = useState(false)
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
@@ -522,6 +523,22 @@ export default function SectionPage() {
     setSavingEdit(false)
   }
 
+  function openDueAtPicker() {
+    setShowDueAtPicker(true)
+    requestAnimationFrame(() => {
+      const input = dueAtInputRef.current
+      if (!input) return
+      input.focus()
+      if ('showPicker' in input) {
+        try {
+          ;(input as HTMLInputElement & { showPicker?: () => void }).showPicker?.()
+        } catch {
+          // Ignore if the browser blocks programmatic picker open.
+        }
+      }
+    })
+  }
+
   if (loading) {
     return (
       <main className="flex-1 min-h-0 flex flex-col overflow-hidden animate-pulse">
@@ -602,12 +619,21 @@ export default function SectionPage() {
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 sm:gap-3 sm:max-w-md">
             <div>
               <input
+                ref={dueAtInputRef}
                 type={showDueAtPicker || Boolean(newDueAt) ? 'datetime-local' : 'text'}
                 placeholder="Date and time"
                 value={newDueAt}
                 onChange={e => setNewDueAt(e.target.value)}
-                onFocus={() => setShowDueAtPicker(true)}
-                onClick={() => setShowDueAtPicker(true)}
+                onFocus={() => {
+                  if (!showDueAtPicker) {
+                    openDueAtPicker()
+                  }
+                }}
+                onClick={() => {
+                  if (!showDueAtPicker) {
+                    openDueAtPicker()
+                  }
+                }}
                 onBlur={() => {
                   if (!newDueAt) {
                     setShowDueAtPicker(false)
@@ -615,7 +641,7 @@ export default function SectionPage() {
                 }}
                 readOnly={!showDueAtPicker && !newDueAt}
                 required
-                className="w-full min-w-0 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+                className="w-full min-w-0 h-11 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
               />
             </div>
             <button
