@@ -153,13 +153,13 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          className="lg:hidden fixed inset-0 z-40 bg-black/55 backdrop-blur-[1px]"
           aria-label="Close sidebar overlay"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transform transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[82vw] max-w-[320px] h-[100dvh] flex flex-col bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 shadow-2xl transform transition-transform duration-200 lg:static lg:translate-x-0 lg:w-64 lg:max-w-none lg:shadow-none lg:rounded-none rounded-r-2xl lg:rounded-none ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
