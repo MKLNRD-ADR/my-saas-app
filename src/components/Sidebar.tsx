@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import ThemeToggle from './ThemeToggle'
-import { Plus, Trash2, LayoutList, LogOut, Pencil, Check, X } from 'lucide-react'
+import { Plus, Trash2, LayoutList, LogOut, Pencil, Check, X, Menu } from 'lucide-react'
 
 type Section = {
   id: string
@@ -29,6 +29,7 @@ export default function Sidebar() {
   const [renaming, setRenaming] = useState(false)
   const [sectionNameError, setSectionNameError] = useState('')
   const [renameError, setRenameError] = useState('')
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   const isNewSectionDuplicate = useMemo(() => {
     const normalized = normalizeSectionName(newSection)
@@ -133,11 +134,35 @@ export default function Sidebar() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    setIsMobileOpen(false)
     router.push('/login')
   }
 
   return (
-    <div className="w-64 h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800">
+    <>
+      <button
+        type="button"
+        onClick={() => setIsMobileOpen(prev => !prev)}
+        className="lg:hidden fixed top-4 left-4 z-40 inline-flex items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/95 dark:bg-neutral-900/95 p-2 text-neutral-700 dark:text-neutral-200 shadow-sm"
+        aria-label={isMobileOpen ? 'Close sidebar' : 'Open sidebar'}
+      >
+        {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
+      </button>
+
+      {isMobileOpen && (
+        <button
+          type="button"
+          onClick={() => setIsMobileOpen(false)}
+          className="lg:hidden fixed inset-0 z-40 bg-black/40"
+          aria-label="Close sidebar overlay"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 transform transition-transform duration-200 lg:static lg:translate-x-0 ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
 
       {/* header */}
       <div className="px-5 pt-6 pb-4 flex items-start justify-between">
@@ -224,6 +249,7 @@ export default function Sidebar() {
             key={section.id}
             onClick={() => {
               if (editingSectionId !== section.id) {
+                setIsMobileOpen(false)
                 router.push(`/dashboard/${section.id}`)
               }
             }}
@@ -300,6 +326,7 @@ export default function Sidebar() {
         </button>
       </div>
 
-    </div>
+      </aside>
+    </>
   )
 }
