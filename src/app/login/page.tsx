@@ -28,16 +28,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="w-full max-w-md p-8 bg-neutral-900 rounded-2xl border border-neutral-800">
-        <h1 className="text-2xl font-semibold text-white mb-6">Welcome back</h1>
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#212121] px-4">
+      <div className="w-full max-w-sm flex flex-col items-center gap-6">
+
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-semibold text-white mb-2">Log in or sign up</h1>
+          <p className="text-neutral-400 text-sm leading-relaxed">
+            You'll get smarter responses and can upload<br />files, images, and more.
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleLogin} className="w-full flex flex-col gap-3">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Email address"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="bg-neutral-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-[#2f2f2f] text-white placeholder-neutral-500 rounded-full px-5 py-3.5 text-sm outline-none border border-transparent focus:border-neutral-500 transition"
             required
           />
           <input
@@ -45,22 +54,36 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="bg-neutral-800 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-[#2f2f2f] text-white placeholder-neutral-500 rounded-full px-5 py-3.5 text-sm outline-none border border-transparent focus:border-neutral-500 transition"
             required
           />
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+
+          {error && (
+            <p className="text-red-400 text-xs px-2">{error}</p>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition"
+            className="w-full bg-white hover:bg-neutral-100 text-black font-medium py-3.5 rounded-full text-sm transition disabled:opacity-60"
           >
-            {loading ? 'Logging in...' : 'Log in'}
+            {loading ? 'Logging in...' : 'Continue'}
           </button>
         </form>
-        <p className="text-neutral-400 text-sm mt-4">
+
+        {/* Footer links */}
+        <div className="flex items-center gap-3 text-xs text-neutral-500">
+          <Link href="/terms" className="hover:underline">Terms of Use</Link>
+          <span>|</span>
+          <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+        </div>
+
+        {/* Sign up prompt */}
+        <p className="text-neutral-500 text-xs">
           Don't have an account?{' '}
-          <Link href="/signup" className="text-blue-400 hover:underline">Sign up</Link>
+          <Link href="/signup" className="text-white hover:underline">Sign up</Link>
         </p>
+
       </div>
     </div>
   )
