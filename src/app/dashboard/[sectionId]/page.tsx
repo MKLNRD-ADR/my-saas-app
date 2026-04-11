@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
 import { Pencil, Trash2, X } from 'lucide-react'
@@ -28,6 +28,8 @@ export default function SectionPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [newTask, setNewTask] = useState('')
   const [newDueAt, setNewDueAt] = useState('')
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
+  const [suggestingTitles, setSuggestingTitles] = useState(false)
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
   const [taskSort, setTaskSort] = useState<TaskSort>('recent')
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
@@ -86,14 +88,7 @@ export default function SectionPage() {
     }
   }, [tasks])
 
-  useEffect(() => {
-    if (sectionId) {
-      fetchSection()
-      fetchTasks()
-    }
-  }, [sectionId])
-
-  async function fetchSection() {
+  const fetchSection = useCallback(async () => {
     const { data } = await supabase
       .from('sections')
       .select('*')
@@ -101,16 +96,68 @@ export default function SectionPage() {
       .single()
     setSection(data)
     setLoading(false)
-  }
+  }, [sectionId])
 
-  async function fetchTasks() {
+  const fetchTasks = useCallback(async () => {
     const { data } = await supabase
       .from('tasks')
       .select('*')
       .eq('section_id', sectionId)
       .order('created_at', { ascending: false })
     setTasks(data ?? [])
-  }
+  }, [sectionId])
+
+  useEffect(() => {
+    if (sectionId) {
+      fetchSection()
+      fetchTasks()
+    }
+  }, [sectionId, fetchSection, fetchTasks])
+
+  useEffect(() => {
+    const title = newTask.trim()
+    if (title.length < 3) {
+      setTitleSuggestions([])
+      setSuggestingTitles(false)
+      return
+    }
+
+    const controller = new AbortController()
+    const timeout = setTimeout(async () => {
+      setSuggestingTitles(true)
+      try {
+        const response = await fetch('/api/improve-task-title', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ title }),
+          signal: controller.signal
+        })
+
+        if (!response.ok) {
+          setTitleSuggestions([])
+          return
+        }
+
+        const data = await response.json() as { suggestions?: string[] }
+        setTitleSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+      } catch {
+        if (!controller.signal.aborted) {
+          setTitleSuggestions([])
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSuggestingTitles(false)
+        }
+      }
+    }, 400)
+
+    return () => {
+      clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [newTask])
 
   async function addTask(e: React.FormEvent) {
     e.preventDefault()
@@ -125,6 +172,7 @@ export default function SectionPage() {
     })
     setNewTask('')
     setNewDueAt('')
+    setTitleSuggestions([])
     await fetchTasks()
     setAdding(false)
   }
@@ -204,28 +252,50 @@ export default function SectionPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-8 py-6">
-        <form onSubmit={addTask} className="flex gap-3 mb-6">
-          <input
-            type="text"
-            placeholder="Add a new task..."
-            value={newTask}
-            onChange={e => setNewTask(e.target.value)}
-            className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-          />
-          <input
-            type="datetime-local"
-            value={newDueAt}
-            onChange={e => setNewDueAt(e.target.value)}
-            required
-            className="bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-          />
-          <button
-            type="submit"
-            disabled={!canAddTask}
-            className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-3 rounded-lg transition font-medium"
-          >
-            {adding ? '...' : 'Add'}
-          </button>
+        <form onSubmit={addTask} className="mb-6">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              placeholder="Add a new task..."
+              value={newTask}
+              onChange={e => setNewTask(e.target.value)}
+              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+            />
+            <input
+              type="datetime-local"
+              value={newDueAt}
+              onChange={e => setNewDueAt(e.target.value)}
+              required
+              className="bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+            />
+            <button
+              type="submit"
+              disabled={!canAddTask}
+              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-3 rounded-lg transition font-medium"
+            >
+              {adding ? '...' : 'Add'}
+            </button>
+          </div>
+
+          {(suggestingTitles || titleSuggestions.length > 0) && (
+            <div className="mt-3 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+                {suggestingTitles ? 'Improving title...' : 'Suggested improved titles'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {titleSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setNewTask(suggestion)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </form>
 
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">

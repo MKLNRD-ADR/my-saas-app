@@ -35,7 +35,7 @@ export default function LoginPage() {
         <div className="text-center">
           <h1 className="text-3xl font-semibold text-white mb-2">Log in or sign up</h1>
           <p className="text-neutral-400 text-sm leading-relaxed">
-            You'll get smarter responses and can upload<br />files, images, and more.
+            You&apos;ll get smarter responses and can upload<br />files, images, and more.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
         {/* Sign up prompt */}
         <p className="text-neutral-500 text-xs">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-white hover:underline">Sign up</Link>
         </p>
 

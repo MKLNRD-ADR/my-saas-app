@@ -44,7 +44,7 @@ export default function SignupPage() {
         <div className="text-center">
           <h1 className="text-3xl font-semibold text-white mb-2">Create an account</h1>
           <p className="text-neutral-400 text-sm leading-relaxed">
-            You'll get smarter responses and can upload<br />files, images, and more.
+            You&apos;ll get smarter responses and can upload<br />files, images, and more.
           </p>
         </div>
 
