@@ -556,7 +556,7 @@ export default function SectionPage() {
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6 pb-28 sm:pb-6">
         <form onSubmit={addTask} className="mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto] gap-2.5 sm:gap-3">
+          <div className="space-y-2.5 sm:space-y-3">
             <div className="relative">
               <input
                 type="text"
@@ -576,6 +576,28 @@ export default function SectionPage() {
                 <Mic size={16} className={isListening ? 'animate-pulse text-red-500' : ''} />
               </button>
             </div>
+
+            {(suggestingTitles || titleSuggestions.length > 0) && (
+              <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2">
+                <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 mb-2">
+                  {suggestingTitles ? 'Improving title...' : 'Suggested improved titles'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {titleSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => setNewTask(suggestion)}
+                      className="text-[11px] sm:text-xs px-3 py-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 sm:gap-3 sm:max-w-md">
             <input
               type="datetime-local"
               value={newDueAt}
@@ -586,31 +608,12 @@ export default function SectionPage() {
             <button
               type="submit"
               disabled={!canAddTask}
-              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-2.5 rounded-lg transition text-sm font-medium disabled:bg-neutral-300 disabled:text-neutral-500 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-700"
+              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-2.5 rounded-lg transition text-sm font-medium whitespace-nowrap disabled:bg-neutral-300 disabled:text-neutral-500 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-700"
             >
               {adding ? '...' : 'Add'}
             </button>
           </div>
-
-          {(suggestingTitles || titleSuggestions.length > 0) && (
-            <div className="mt-3 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2">
-              <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-neutral-400 mb-2">
-                {suggestingTitles ? 'Improving title...' : 'Suggested improved titles'}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {titleSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => setNewTask(suggestion)}
-                    className="text-[11px] sm:text-xs px-3 py-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
 
           {voiceError && (
             <p className="mt-2 text-[11px] sm:text-xs text-red-600 dark:text-red-400">{voiceError}</p>
@@ -628,7 +631,7 @@ export default function SectionPage() {
             <select
               value={taskFilter}
               onChange={e => setTaskFilter(e.target.value as TaskFilter)}
-              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2 text-xs outline-none"
+              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none"
               aria-label="Filter tasks"
             >
               <option value="all">All ({taskCounts.all})</option>
@@ -639,7 +642,7 @@ export default function SectionPage() {
             <select
               value={taskSort}
               onChange={e => setTaskSort(e.target.value as TaskSort)}
-              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2 text-xs outline-none"
+              className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none"
               aria-label="Sort tasks"
             >
               <option value="recent">Recent Added</option>
