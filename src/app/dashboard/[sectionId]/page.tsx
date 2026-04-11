@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
-import { Pencil, Trash2, X } from 'lucide-react'
+import { Mic, Pencil, Trash2, X } from 'lucide-react'
 
 type Task = {
   id: string
@@ -21,6 +21,246 @@ type Section = {
 type TaskFilter = 'all' | 'completed' | 'pending'
 type TaskSort = 'recent' | 'due'
 
+type SpokenTaskParseResult = {
+  title: string
+  dueAt: string
+}
+
+type VoiceRecognitionResultItem = {
+  transcript: string
+}
+
+type VoiceRecognitionResultList = {
+  0: VoiceRecognitionResultItem
+  length: number
+}
+
+type VoiceRecognitionEvent = {
+  results: {
+    0: VoiceRecognitionResultList
+    length: number
+  }
+}
+
+type VoiceRecognitionErrorEvent = {
+  error: string
+}
+
+type VoiceRecognition = {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  maxAlternatives: number
+  onresult: ((event: VoiceRecognitionEvent) => void) | null
+  onerror: ((event: VoiceRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+  start: () => void
+}
+
+type VoiceRecognitionConstructor = new () => VoiceRecognition
+
+const DUPLICATE_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'the',
+  'i',
+  'will',
+  'do',
+  'to',
+  'my',
+  'me',
+  'please',
+  'task',
+  'for'
+])
+
+const WEEKDAY_TO_INDEX: Record<string, number> = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6
+}
+
+function toDateTimeInputValue(value: Date) {
+  const tzOffsetMs = value.getTimezoneOffset() * 60000
+  return new Date(value.getTime() - tzOffsetMs).toISOString().slice(0, 16)
+}
+
+function resolveNextWeekday(baseDate: Date, targetDay: number, useNextWeek: boolean) {
+  const date = new Date(baseDate)
+  date.setSeconds(0, 0)
+  const currentDay = date.getDay()
+  let diff = targetDay - currentDay
+  if (diff <= 0 || useNextWeek) {
+    diff += 7
+  }
+  date.setDate(date.getDate() + diff)
+  return date
+}
+
+function parseSpokenTaskInput(input: string): SpokenTaskParseResult {
+  const original = input.replace(/\s+/g, ' ').trim()
+  if (!original) {
+    return { title: '', dueAt: '' }
+  }
+
+  const now = new Date()
+  let parsedDate: Date | null = null
+  let parsedHour: number | null = null
+  let parsedMinute = 0
+  const consumedParts: string[] = []
+
+  const lower = original.toLowerCase()
+
+  const isoDateMatch = lower.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/)
+  if (isoDateMatch) {
+    const year = Number(isoDateMatch[1])
+    const month = Number(isoDateMatch[2])
+    const day = Number(isoDateMatch[3])
+    parsedDate = new Date(year, month - 1, day)
+    consumedParts.push(isoDateMatch[0])
+  }
+
+  const slashDateMatch = lower.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/)
+  if (!parsedDate && slashDateMatch) {
+    const month = Number(slashDateMatch[1])
+    const day = Number(slashDateMatch[2])
+    const yearRaw = slashDateMatch[3]
+    let year = now.getFullYear()
+    if (yearRaw) {
+      year = Number(yearRaw.length === 2 ? `20${yearRaw}` : yearRaw)
+    }
+    parsedDate = new Date(year, month - 1, day)
+    consumedParts.push(slashDateMatch[0])
+  }
+
+  const relativeDayMatch = lower.match(/\b(today|tomorrow)\b/)
+  if (!parsedDate && relativeDayMatch) {
+    parsedDate = new Date(now)
+    parsedDate.setSeconds(0, 0)
+    if (relativeDayMatch[1] === 'tomorrow') {
+      parsedDate.setDate(parsedDate.getDate() + 1)
+    }
+    consumedParts.push(relativeDayMatch[0])
+  }
+
+  const weekdayMatch = lower.match(/\b(next\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/)
+  if (!parsedDate && weekdayMatch) {
+    const useNextWeek = Boolean(weekdayMatch[1])
+    const dayName = weekdayMatch[2]
+    parsedDate = resolveNextWeekday(now, WEEKDAY_TO_INDEX[dayName], useNextWeek)
+    consumedParts.push(weekdayMatch[0])
+  }
+
+  const time12hMatch = lower.match(/\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/)
+  if (time12hMatch) {
+    let hour = Number(time12hMatch[1])
+    const minute = time12hMatch[2] ? Number(time12hMatch[2]) : 0
+    const meridiem = time12hMatch[3]
+
+    if (meridiem === 'pm' && hour < 12) hour += 12
+    if (meridiem === 'am' && hour === 12) hour = 0
+
+    parsedHour = hour
+    parsedMinute = minute
+    consumedParts.push(time12hMatch[0])
+  }
+
+  const time24hMatch = lower.match(/\b(?:at\s+)?([01]?\d|2[0-3]):([0-5]\d)\b/)
+  if (parsedHour === null && time24hMatch) {
+    parsedHour = Number(time24hMatch[1])
+    parsedMinute = Number(time24hMatch[2])
+    consumedParts.push(time24hMatch[0])
+  }
+
+  let title = original
+  for (const part of consumedParts) {
+    const escaped = part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    title = title.replace(new RegExp(escaped, 'i'), ' ')
+  }
+
+  title = title
+    .replace(/\b(on|at|by|due|for)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (!title) {
+    title = original
+  }
+
+  if (!parsedDate && parsedHour === null) {
+    return { title, dueAt: '' }
+  }
+
+  const dueDate = parsedDate ? new Date(parsedDate) : new Date(now)
+  dueDate.setSeconds(0, 0)
+  if (parsedHour !== null) {
+    dueDate.setHours(parsedHour, parsedMinute, 0, 0)
+  } else {
+    dueDate.setHours(now.getHours(), now.getMinutes(), 0, 0)
+  }
+
+  return {
+    title,
+    dueAt: toDateTimeInputValue(dueDate)
+  }
+}
+
+function normalizeWord(word: string) {
+  const lower = word.toLowerCase()
+  if (lower === 'assignemt') return 'assignment'
+  if (/^assign[a-z]*$/.test(lower) && lower !== 'assignment') return 'assignment'
+  if (lower === 'mathematics' || lower === 'maths') return 'math'
+  return lower
+}
+
+function tokenizeForDuplicateCheck(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .map(normalizeWord)
+    .filter(Boolean)
+}
+
+function areDuplicateTitles(existingTitle: string, newTitle: string) {
+  const existingTokens = tokenizeForDuplicateCheck(existingTitle)
+  const newTokens = tokenizeForDuplicateCheck(newTitle)
+
+  if (existingTokens.length === 0 || newTokens.length === 0) {
+    return false
+  }
+
+  const existingNumbers = existingTokens.filter(token => /^\d+$/.test(token))
+  const newNumbers = newTokens.filter(token => /^\d+$/.test(token))
+
+  if (existingNumbers.length > 0 || newNumbers.length > 0) {
+    if (existingNumbers.length === 0 || newNumbers.length === 0) {
+      return false
+    }
+
+    if (existingNumbers.join('|') !== newNumbers.join('|')) {
+      return false
+    }
+  }
+
+  const existingCore = existingTokens.filter(token => !DUPLICATE_STOP_WORDS.has(token))
+  const newCore = newTokens.filter(token => !DUPLICATE_STOP_WORDS.has(token))
+
+  const short = existingCore.length <= newCore.length ? existingCore : newCore
+  const longSet = new Set(existingCore.length <= newCore.length ? newCore : existingCore)
+
+  if (short.length === 0) {
+    return existingTokens.join(' ') === newTokens.join(' ')
+  }
+
+  const sharedCount = short.filter(token => longSet.has(token)).length
+  return sharedCount === short.length && short.length >= 2
+}
+
 export default function SectionPage() {
   const params = useParams()
   const sectionId = params.sectionId as string
@@ -37,8 +277,9 @@ export default function SectionPage() {
   const [editTaskDueAt, setEditTaskDueAt] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [voiceError, setVoiceError] = useState('')
   const [loading, setLoading] = useState(true)
-  const canAddTask = newTask.trim().length > 0 && newDueAt.trim().length > 0 && !adding
   const canSaveEdit = editTaskTitle.trim().length > 0 && editTaskDueAt.trim().length > 0 && !savingEdit
 
   function toDateTimeLocalValue(value: string | null) {
@@ -87,6 +328,19 @@ export default function SectionPage() {
       pending
     }
   }, [tasks])
+
+  const duplicateTask = useMemo(() => {
+    const title = newTask.trim()
+    if (!title) return null
+
+    return tasks.find(task => areDuplicateTitles(task.title, title)) ?? null
+  }, [tasks, newTask])
+
+  const canAddTask =
+    newTask.trim().length > 0 &&
+    newDueAt.trim().length > 0 &&
+    !adding &&
+    !duplicateTask
 
   const fetchSection = useCallback(async () => {
     const { data } = await supabase
@@ -162,6 +416,7 @@ export default function SectionPage() {
   async function addTask(e: React.FormEvent) {
     e.preventDefault()
     if (!newTask.trim() || !newDueAt.trim()) return
+    if (duplicateTask) return
     setAdding(true)
     const { data: { user } } = await supabase.auth.getUser()
     await supabase.from('tasks').insert({
@@ -175,6 +430,54 @@ export default function SectionPage() {
     setTitleSuggestions([])
     await fetchTasks()
     setAdding(false)
+  }
+
+  function startVoiceInput() {
+    if (typeof window === 'undefined') return
+
+    const recognitionWindow = window as typeof window & {
+      SpeechRecognition?: VoiceRecognitionConstructor
+      webkitSpeechRecognition?: VoiceRecognitionConstructor
+    }
+
+    const Recognition =
+      recognitionWindow.SpeechRecognition ?? recognitionWindow.webkitSpeechRecognition
+
+    if (!Recognition) {
+      setVoiceError('Voice input is not supported in this browser.')
+      return
+    }
+
+    const recognition = new Recognition()
+    recognition.lang = 'en-US'
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+
+    setVoiceError('')
+    setIsListening(true)
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript?.trim() ?? ''
+      if (!transcript) return
+
+      const parsed = parseSpokenTaskInput(transcript)
+      setNewTask(parsed.title)
+
+      if (parsed.dueAt) {
+        setNewDueAt(parsed.dueAt)
+      }
+    }
+
+    recognition.onerror = () => {
+      setVoiceError('Could not capture voice input. Please try again.')
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+
+    recognition.start()
   }
 
   async function toggleTask(task: Task) {
@@ -261,6 +564,16 @@ export default function SectionPage() {
               onChange={e => setNewTask(e.target.value)}
               className="flex-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
             />
+            <button
+              type="button"
+              onClick={startVoiceInput}
+              disabled={isListening}
+              className="inline-flex items-center gap-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-200 px-3 py-3 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition disabled:opacity-60"
+              aria-label="Speak task"
+            >
+              <Mic size={16} />
+              {isListening ? 'Listening...' : 'Mic'}
+            </button>
             <input
               type="datetime-local"
               value={newDueAt}
@@ -271,7 +584,7 @@ export default function SectionPage() {
             <button
               type="submit"
               disabled={!canAddTask}
-              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-3 rounded-lg transition font-medium"
+              className="bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black px-5 py-3 rounded-lg transition font-medium disabled:bg-neutral-300 disabled:text-neutral-500 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-700"
             >
               {adding ? '...' : 'Add'}
             </button>
@@ -295,6 +608,16 @@ export default function SectionPage() {
                 ))}
               </div>
             </div>
+          )}
+
+          {voiceError && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-400">{voiceError}</p>
+          )}
+
+          {duplicateTask && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+              Duplicate task detected. Similar to: {duplicateTask.title}
+            </p>
           )}
         </form>
 

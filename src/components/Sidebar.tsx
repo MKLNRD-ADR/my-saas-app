@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import ThemeToggle from './ThemeToggle'
@@ -9,6 +9,10 @@ import { Plus, Trash2, LayoutList, LogOut, Pencil, Check, X } from 'lucide-react
 type Section = {
   id: string
   name: string
+}
+
+function normalizeSectionName(name: string) {
+  return name.replace(/\s+/g, ' ').trim().toLowerCase()
 }
 
 export default function Sidebar() {
@@ -23,6 +27,24 @@ export default function Sidebar() {
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
   const [editingSectionName, setEditingSectionName] = useState('')
   const [renaming, setRenaming] = useState(false)
+  const [sectionNameError, setSectionNameError] = useState('')
+  const [renameError, setRenameError] = useState('')
+
+  const isNewSectionDuplicate = useMemo(() => {
+    const normalized = normalizeSectionName(newSection)
+    if (!normalized) return false
+    return sections.some(section => normalizeSectionName(section.name) === normalized)
+  }, [newSection, sections])
+
+  const isRenameDuplicate = useMemo(() => {
+    const normalized = normalizeSectionName(editingSectionName)
+    if (!normalized || !editingSectionId) return false
+    return sections.some(
+      section =>
+        section.id !== editingSectionId &&
+        normalizeSectionName(section.name) === normalized
+    )
+  }, [editingSectionId, editingSectionName, sections])
 
   useEffect(() => {
     async function init() {
@@ -52,11 +74,18 @@ export default function Sidebar() {
 
   async function addSection(e: React.FormEvent) {
     e.preventDefault()
-    if (!newSection.trim()) return
+    const cleanedName = newSection.replace(/\s+/g, ' ').trim()
+    if (!cleanedName) return
+    if (isNewSectionDuplicate) {
+      setSectionNameError('Duplicate section name. Please choose another name.')
+      return
+    }
+
+    setSectionNameError('')
     setAdding(true)
     const { data: { user } } = await supabase.auth.getUser()
     const { data } = await supabase.from('sections').insert({
-      name: newSection.trim(),
+      name: cleanedName,
       user_id: user!.id
     }).select().single()
     setNewSection('')
@@ -75,15 +104,23 @@ export default function Sidebar() {
   function startRenameSection(section: Section) {
     setEditingSectionId(section.id)
     setEditingSectionName(section.name)
+    setRenameError('')
   }
 
   function cancelRenameSection() {
     setEditingSectionId(null)
     setEditingSectionName('')
+    setRenameError('')
   }
 
   async function saveRenameSection(id: string) {
     if (!editingSectionName.trim()) return
+    if (isRenameDuplicate) {
+      setRenameError('Duplicate section name. Please choose another name.')
+      return
+    }
+
+    setRenameError('')
     setRenaming(true)
     await supabase
       .from('sections')
@@ -136,20 +173,33 @@ export default function Sidebar() {
             <div className="flex gap-2 mt-2">
               <button
                 type="submit"
-                disabled={adding}
-                className="flex-1 text-xs bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black py-1.5 rounded-lg transition"
+                disabled={adding || isNewSectionDuplicate}
+                className="flex-1 text-xs bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black py-1.5 rounded-lg transition disabled:bg-neutral-300 disabled:text-neutral-500 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-400 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 dark:disabled:hover:bg-neutral-700"
               >
                 {adding ? 'Adding...' : 'Add'}
               </button>
               <button
                 type="button"
-                onClick={() => { setShowInput(false); setNewSection('') }}
+                onClick={() => {
+                  setShowInput(false)
+                  setNewSection('')
+                  setSectionNameError('')
+                }}
                 className="flex-1 text-xs border border-neutral-200 dark:border-neutral-700 text-neutral-500 py-1.5 rounded-lg transition hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
                 Cancel
               </button>
             </div>
+            {(sectionNameError || isNewSectionDuplicate) && (
+              <p className="text-xs text-red-500 mt-2 px-1">
+                {sectionNameError || 'Duplicate section name. Please choose another name.'}
+              </p>
+            )}
           </form>
+        )}
+
+        {renameError && (
+          <p className="text-xs text-red-500 mb-2 px-2">{renameError}</p>
         )}
 
         {sectionsLoading && (
@@ -202,7 +252,7 @@ export default function Sidebar() {
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   onClick={e => { e.stopPropagation(); saveRenameSection(section.id) }}
-                  disabled={renaming || !editingSectionName.trim()}
+                  disabled={renaming || !editingSectionName.trim() || isRenameDuplicate}
                   className="text-neutral-400 hover:text-green-500 transition disabled:opacity-40"
                 >
                   <Check size={13} />

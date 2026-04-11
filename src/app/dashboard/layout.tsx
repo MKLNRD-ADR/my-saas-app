@@ -1,4 +1,5 @@
 import Sidebar from '@/components/Sidebar'
+import AiAssistant from '@/components/AiAssistant'
 
 export default function DashboardLayout({
   children,
@@ -9,6 +10,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-white dark:bg-[#212121]">
       <Sidebar />
       {children}
+      <AiAssistant />
     </div>
   )
 }
