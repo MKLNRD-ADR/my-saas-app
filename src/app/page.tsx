@@ -113,20 +113,52 @@ export default function LandingPage() {
       </section>
 
       {/* features */}
-      <section className="max-w-4xl mx-auto px-8 pb-24">
-        <div className="grid grid-cols-3 gap-6">
+      <section className="max-w-5xl mx-auto px-8 pb-24">
+        <div className="text-center mb-10">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-2">Everything Included</p>
+          <h2 className="text-3xl font-bold tracking-tight">All TaskFlow Features</h2>
+          <p className="text-neutral-400 text-sm mt-3 max-w-2xl mx-auto">
+            Built for real daily use: fast task entry, AI cleanup, smart duplicate checks, voice input, and a floating assistant that can answer across all your sections.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
             {
-              title: 'sections for everything',
-              desc: 'work, personal, groceries — keep each part of your life in its own space without things bleeding into each other.'
+              title: 'AI title improvement',
+              desc: 'Type short titles like "do math" and get cleaner options like "Complete Math Assignment" instantly.'
             },
             {
-              title: 'no extra garbage',
-              desc: "it's a task app. you add tasks, you complete them, you delete them. that's it. no kanban boards you'll never use."
+              title: 'auto-correct suggestions',
+              desc: 'Misspellings like "assignm" are corrected automatically in suggestions so titles stay clean.'
             },
             {
-              title: 'yours only',
-              desc: 'your tasks are tied to your account. nobody else sees them. no shared workspaces you accidentally post to.'
+              title: 'voice to task input',
+              desc: 'Use the mic to speak your task. If you include date/time, it auto-fills due date too.'
+            },
+            {
+              title: 'smart duplicate blocking',
+              desc: 'Prevents duplicate tasks across wording variations while still allowing numbered tasks like 1, 2, 3.'
+            },
+            {
+              title: 'section duplicate protection',
+              desc: 'Section names are checked case-insensitively so duplicate section names are blocked.'
+            },
+            {
+              title: 'floating AI assistant',
+              desc: 'Bottom-right chat widget answers questions like closest due date across all sections.'
+            },
+            {
+              title: 'edit, delete, complete',
+              desc: 'Quickly update titles and dates, mark done, or remove tasks when no longer needed.'
+            },
+            {
+              title: 'filters and sorting',
+              desc: 'View all/completed/pending tasks and sort by recent added or nearest due date.'
+            },
+            {
+              title: 'auth + personal workspace',
+              desc: 'Your account gets its own private sections and tasks with login, signup, and protected routes.'
             }
           ].map((f, i) => (
             <div key={i} className="border border-neutral-700 rounded-2xl p-5 bg-[#2a2a2a]">
