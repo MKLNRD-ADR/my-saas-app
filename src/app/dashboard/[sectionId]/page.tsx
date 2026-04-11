@@ -268,6 +268,7 @@ export default function SectionPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [newTask, setNewTask] = useState('')
   const [newDueAt, setNewDueAt] = useState('')
+  const [showDueAtPicker, setShowDueAtPicker] = useState(false)
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([])
   const [suggestingTitles, setSuggestingTitles] = useState(false)
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
@@ -427,6 +428,7 @@ export default function SectionPage() {
     })
     setNewTask('')
     setNewDueAt('')
+    setShowDueAtPicker(false)
     setTitleSuggestions([])
     await fetchTasks()
     setAdding(false)
@@ -598,13 +600,24 @@ export default function SectionPage() {
             )}
 
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 sm:gap-3 sm:max-w-md">
-            <input
-              type="datetime-local"
-              value={newDueAt}
-              onChange={e => setNewDueAt(e.target.value)}
-              required
-              className="w-full min-w-0 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
-            />
+            <div>
+              <input
+                type={showDueAtPicker || Boolean(newDueAt) ? 'datetime-local' : 'text'}
+                placeholder="Date and time"
+                value={newDueAt}
+                onChange={e => setNewDueAt(e.target.value)}
+                onFocus={() => setShowDueAtPicker(true)}
+                onClick={() => setShowDueAtPicker(true)}
+                onBlur={() => {
+                  if (!newDueAt) {
+                    setShowDueAtPicker(false)
+                  }
+                }}
+                readOnly={!showDueAtPicker && !newDueAt}
+                required
+                className="w-full min-w-0 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600"
+              />
+            </div>
             <button
               type="submit"
               disabled={!canAddTask}
