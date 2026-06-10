@@ -25,8 +25,9 @@ export default function SignupPage() {
       return
     }
 
-    if (!data.session) {
-      setError('This email may already be registered. Try logging in instead.')
+    // if user already exists, Supabase returns fake success with no session
+    if (data.user && !data.session) {
+      setError('This email is already registered. Try logging in instead.')
       setLoading(false)
       return
     }
@@ -96,4 +97,4 @@ export default function SignupPage() {
       </div>
     </div>
   )
-}
+}       
