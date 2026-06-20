@@ -1,9 +1,12 @@
 'use client'
 
+
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+
+
 
 export default function SignupPage() {
   const router = useRouter()
@@ -36,6 +39,7 @@ export default function SignupPage() {
       router.push('/dashboard')
     }
   }
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#212121] px-4">

@@ -1,187 +1,243 @@
 import Link from 'next/link'
+import Image from 'next/image'
+
+export const metadata = {
+  title: 'TaskFlow',
+  description: 'Task management app',
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#212121] text-white">
+    <div className="min-h-screen bg-[#212121] text-white font-sans">
 
       {/* navbar */}
-      <nav className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5 gap-3">
-        <span className="text-lg font-semibold tracking-tight">TaskFlow</span>
-        <div className="flex items-center gap-2 sm:gap-3">
+      <nav className="flex items-center justify-between px-8 sm:px-16 py-5 border-b border-neutral-800">
+        <span className="text-base font-semibold tracking-tight text-white">TaskFlow</span>
+        <div className="flex items-center gap-3 sm:gap-4">
           <Link
             href="/login"
-            className="text-xs sm:text-sm text-neutral-400 hover:text-white transition px-2 sm:px-4 py-2"
+            className="text-sm sm:text-base text-neutral-400 hover:text-white transition px-4 py-2"
           >
             Log in
           </Link>
           <Link
             href="/signup"
-            className="text-xs sm:text-sm bg-white text-black px-4 sm:px-5 py-2 rounded-full font-medium hover:bg-neutral-100 transition"
+            className="text-sm sm:text-base bg-white text-black px-6 sm:px-7 py-2.5 rounded-full font-medium hover:bg-neutral-100 transition"
           >
             Get started
           </Link>
         </div>
       </nav>
 
-      {/* hero */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-8 pt-14 sm:pt-24 pb-12 sm:pb-16 text-center">
-        <div className="inline-block text-xs font-medium bg-[#2f2f2f] text-neutral-300 px-4 py-1.5 rounded-full mb-6 border border-neutral-700">
-          actually free. no credit card.
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-bold leading-tight mb-5 sm:mb-6 tracking-tight">
-          stop losing track of<br />what needs to get done
-        </h1>
-        <p className="text-base sm:text-lg text-neutral-400 mb-8 sm:mb-10 max-w-xl mx-auto leading-relaxed">
-          TaskFlow keeps your tasks organized by section so you always know what to work on next. no bloat, no nonsense.
-        </p>
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          <Link
-            href="/signup"
-            className="bg-white text-black px-7 py-3 rounded-full font-medium hover:bg-neutral-100 transition text-sm"
-          >
-            start for free
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm text-neutral-400 hover:text-white transition"
-          >
-            already have an account →
-          </Link>
-        </div>
-      </section>
-
-      {/* fake app preview */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-8 pb-16 sm:pb-24">
-        <div className="rounded-2xl border border-neutral-700 overflow-hidden">
-          <div className="h-[230px] sm:h-96">
-            <div className="flex h-96 w-[760px] origin-top-left scale-[0.58] sm:w-full sm:scale-100">
-            {/* fake sidebar */}
-            <div className="w-56 bg-[#2a2a2a] border-r border-neutral-700 p-4 flex flex-col gap-1">
-              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3 px-2">TaskFlow</p>
-              {['Work stuff', 'Personal', 'Side project', 'Shopping'].map((s, i) => (
-                <div
-                  key={s}
-                  className={`text-sm px-3 py-2 rounded-lg cursor-default ${
-                    i === 0
-                      ? 'bg-[#3a3a3a] text-white'
-                      : 'text-neutral-500 hover:text-neutral-300'
-                  }`}
-                >
-                  {s}
-                </div>
-              ))}
-            </div>
-
-            {/* fake main */}
-            <div className="flex-1 bg-[#212121] p-4 sm:p-6">
-              <h3 className="text-lg font-semibold mb-1 text-white">Work stuff</h3>
-              <p className="text-xs text-neutral-500 mb-6">4 tasks</p>
-              <div className="flex flex-col gap-2">
-                {[
-                  { text: 'finish the landing page', done: true },
-                  { text: 'review pull requests', done: true },
-                  { text: 'fix that annoying navbar bug', done: false },
-                  { text: 'write docs for the API', done: false },
-                ].map((task, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 bg-[#2a2a2a] border border-neutral-700 rounded-lg px-4 py-2.5"
-                  >
-                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                      task.done
-                        ? 'bg-white border-white'
-                        : 'border-neutral-600'
-                    }`}>
-                      {task.done && (
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                          <path d="M1 4L3.5 6.5L9 1" stroke="#212121" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
-                    </div>
-                    <span className={`text-sm ${
-                      task.done
-                        ? 'line-through text-neutral-600'
-                        : 'text-white'
-                    }`}>
-                      {task.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
+      {/* hero — two-column split */}
+      <section className="max-w-7xl mx-auto px-8 sm:px-16 pt-16 sm:pt-28 pb-20 sm:pb-32 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        {/* left: copy */}
+        <div>
+          <div className="inline-flex items-center gap-2 text-sm font-medium bg-[#2a2a2a] text-neutral-300 px-4 py-2 rounded-full mb-8 border border-neutral-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+            free forever, no card needed
+          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 tracking-tight">
+            Tasks you'll actually<br />
+            <span className="text-neutral-400">remember to finish.</span>
+          </h1>
+          <p className="text-base sm:text-lg text-neutral-400 mb-10 leading-relaxed max-w-lg">
+            TaskFlow keeps everything in sections so nothing slips. No bloat, no upsells — just your list.
+          </p>
+          <div className="flex items-center gap-6 flex-wrap">
+            <Link
+              href="/signup"
+              className="bg-white text-black px-8 py-3.5 rounded-full font-medium hover:bg-neutral-100 transition text-base"
+            >
+              Start for free
+            </Link>
+            <Link
+              href="/login"
+              className="text-base text-neutral-400 hover:text-white transition"
+            >
+              Sign in →
+            </Link>
           </div>
         </div>
+
+        {/* right: app screenshot — drop your image in /public and update the src below */}
+        <div className="rounded-2xl border border-neutral-700 overflow-hidden bg-[#1a1a1a]">
+          <Image
+            src="/yours-screenshot.png"
+            alt="TaskFlow app preview"
+            width={800}
+            height={600}
+            className="w-full h-auto"
+          />
+        </div>
       </section>
 
-      {/* features */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-8 pb-16 sm:pb-24">
-        <div className="text-center mb-10">
-          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-2">Everything Included</p>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">All TaskFlow Features</h2>
-          <p className="text-neutral-400 text-sm mt-3 max-w-2xl mx-auto">
-            Built for real daily use: fast task entry, AI cleanup, smart duplicate checks, voice input, and a floating assistant that can answer across all your sections.
-          </p>
+      {/* how it works */}
+      <section className="max-w-7xl mx-auto px-8 sm:px-16 py-20 sm:py-28">
+        <div className="text-center mb-14">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-4">How it works</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Up and running in three steps</h2>
         </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             {
-              title: 'AI title improvement',
-              desc: 'Type short titles like "do math" and get cleaner options like "Complete Math Assignment" instantly.'
+              step: '01',
+              title: 'Create your account',
+              desc: "Sign up in seconds. No credit card, no email confirmation — just pick a username and password and you're in.",
             },
             {
-              title: 'auto-correct suggestions',
-              desc: 'Misspellings like "assignm" are corrected automatically in suggestions so titles stay clean.'
+              step: '02',
+              title: 'Add your sections',
+              desc: 'Organize tasks into sections like Work, Personal, or Side Project. Create as many as you need, rename or delete anytime.',
             },
             {
-              title: 'voice to task input',
-              desc: 'Use the mic to speak your task. If you include date/time, it auto-fills due date too.'
+              step: '03',
+              title: 'Start adding tasks',
+              desc: 'Type or speak your tasks. AI cleans up the title, catches duplicates, and auto-fills due dates when you mention them.',
             },
-            {
-              title: 'smart duplicate blocking',
-              desc: 'Prevents duplicate tasks across wording variations while still allowing numbered tasks like 1, 2, 3.'
-            },
-            {
-              title: 'section duplicate protection',
-              desc: 'Section names are checked case-insensitively so duplicate section names are blocked.'
-            },
-            {
-              title: 'floating AI assistant',
-              desc: 'Bottom-right chat widget answers questions like closest due date across all sections.'
-            },
-            {
-              title: 'edit, delete, complete',
-              desc: 'Quickly update titles and dates, mark done, or remove tasks when no longer needed.'
-            },
-            {
-              title: 'filters and sorting',
-              desc: 'View all/completed/pending tasks and sort by recent added or nearest due date.'
-            },
-            {
-              title: 'auth + personal workspace',
-              desc: 'Your account gets its own private sections and tasks with login, signup, and protected routes.'
-            }
-          ].map((f, i) => (
-            <div key={i} className="border border-neutral-700 rounded-2xl p-5 bg-[#2a2a2a]">
-              <h4 className="font-medium text-white mb-2">{f.title}</h4>
-              <p className="text-sm text-neutral-400 leading-relaxed">{f.desc}</p>
+          ].map((s, i) => (
+            <div key={i} className="bg-[#2a2a2a] border border-neutral-700 rounded-2xl p-8">
+              <p className="text-4xl font-bold text-neutral-700 mb-5">{s.step}</p>
+              <h4 className="font-semibold text-white text-lg mb-3">{s.title}</h4>
+              <p className="text-base text-neutral-500 leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* footer cta */}
-      <section className="border-t border-neutral-700 px-4 sm:px-8 py-12 sm:py-16 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 tracking-tight">just try it</h2>
-        <p className="text-neutral-400 mb-8 text-sm">takes 30 seconds to sign up. no email confirmation nonsense.</p>
-        <Link
-          href="/signup"
-          className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-neutral-100 transition text-sm"
-        >
-          get started free
-        </Link>
+      {/* features */}
+      <section className="max-w-7xl mx-auto px-8 sm:px-16 pb-20 sm:pb-28">
+        <div className="border-t border-neutral-800 pt-12 mb-12 text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-4">Everything included</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">All TaskFlow Features</h2>
+          <p className="text-base text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+            Built for real daily use: fast task entry, AI cleanup, smart duplicate checks, voice input, and a floating assistant that answers across all your sections.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-800">
+          {[
+            {
+              icon: '✦',
+              title: 'AI title improvement',
+              desc: 'Type short titles like "do math" and get cleaner options like "Complete Math Assignment" instantly.',
+            },
+            {
+              icon: '✎',
+              title: 'auto-correct suggestions',
+              desc: 'Misspellings like "assignm" are corrected automatically in suggestions so titles stay clean.',
+            },
+            {
+              icon: '🎙',
+              title: 'voice to task input',
+              desc: 'Use the mic to speak your task. If you include date/time, it auto-fills due date too.',
+            },
+            {
+              icon: '⊘',
+              title: 'smart duplicate blocking',
+              desc: 'Prevents duplicate tasks across wording variations while still allowing numbered tasks like 1, 2, 3.',
+            },
+            {
+              icon: '◎',
+              title: 'section duplicate protection',
+              desc: 'Section names are checked case-insensitively so duplicate section names are blocked.',
+            },
+            {
+              icon: '⊟',
+              title: 'floating AI assistant',
+              desc: 'Bottom-right chat widget answers questions like closest due date across all sections.',
+            },
+            {
+              icon: '✓',
+              title: 'edit, delete, complete',
+              desc: 'Quickly update titles and dates, mark done, or remove tasks when no longer needed.',
+            },
+            {
+              icon: '⊞',
+              title: 'filters and sorting',
+              desc: 'View all/completed/pending tasks and sort by recent added or nearest due date.',
+            },
+            {
+              icon: '⊕',
+              title: 'auth + personal workspace',
+              desc: 'Your account gets its own private sections and tasks with login, signup, and protected routes.',
+            },
+          ].map((f, i) => (
+            <div key={i} className="bg-[#242424] p-8">
+              <div className="w-10 h-10 rounded-lg bg-[#2f2f2f] border border-neutral-700 flex items-center justify-center text-base mb-5 text-neutral-300">
+                {f.icon}
+              </div>
+              <h4 className="font-semibold text-white text-base mb-3">{f.title}</h4>
+              <p className="text-sm text-neutral-500 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
+
+      {/* faq */}
+      <section className="max-w-4xl mx-auto px-8 sm:px-16 py-20 sm:py-28">
+        <div className="text-center mb-14">
+          <p className="text-xs uppercase tracking-[0.2em] text-neutral-500 mb-4">FAQ</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Common questions</h2>
+        </div>
+        <div className="flex flex-col divide-y divide-neutral-800">
+          {[
+            {
+              q: 'Is TaskFlow really free?',
+              a: 'Yes. No trial period, no hidden tier, no credit card. Every feature listed on this page is available to every user.',
+            },
+            {
+              q: 'How does the AI title improvement work?',
+              a: "When you type a task title, TaskFlow sends it to an AI model that suggests a cleaner, more specific version. You can accept or ignore it — it never overwrites without your approval.",
+            },
+            {
+              q: 'Can I use voice input on mobile?',
+              a: 'Yes. The mic button works on any device with a microphone. It also detects dates and times in your speech and fills the due date field automatically.',
+            },
+            {
+              q: 'What happens to my data if I stop using it?',
+              a: 'Your account and all tasks stay intact. Nothing is deleted unless you delete it yourself. You can also delete your account from settings at any time.',
+            },
+            {
+              q: 'Is there a mobile app?',
+              a: 'TaskFlow is a fully responsive web app that works great on mobile browsers. A dedicated app may come later.',
+            },
+          ].map((item, i) => (
+            <div key={i} className="py-7">
+              <p className="text-base font-medium text-white mb-3">{item.q}</p>
+              <p className="text-base text-neutral-500 leading-relaxed">{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* footer CTA — matches nav alignment */}
+      <section className="border-t border-neutral-800 px-8 sm:px-16 py-14 sm:py-20">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Try it in 30 seconds.</h2>
+            <p className="text-base text-neutral-500">No credit card. No setup. Actually free.</p>
+          </div>
+          <Link
+            href="/signup"
+            className="flex-shrink-0 bg-white text-black px-8 py-3.5 rounded-full font-medium hover:bg-neutral-100 transition text-base"
+          >
+            Get started free
+          </Link>
+        </div>
+      </section>
+
+      {/* bottom footer */}
+      <footer className="border-t border-neutral-800 px-8 sm:px-16 py-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-neutral-600">
+          <span>© 2025 TaskFlow. All rights reserved.</span>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="hover:text-neutral-400 transition">Privacy</Link>
+            <Link href="/terms" className="hover:text-neutral-400 transition">Terms</Link>
+            <Link href="/contact" className="hover:text-neutral-400 transition">Contact</Link>
+          </div>
+        </div>
+      </footer>
 
     </div>
   )
