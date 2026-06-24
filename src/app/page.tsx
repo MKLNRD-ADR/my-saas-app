@@ -32,6 +32,9 @@ export default function LandingPage() {
       {/* hero — two-column split */}
       <section className="max-w-7xl mx-auto px-8 sm:px-16 pt-16 sm:pt-28 pb-20 sm:pb-32 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         {/* left: copy */}
+        <div className="inline-flex items-center gap-2 text-sm font-medium bg-[#2a2a2a] text-neutral-300 px-4 py-2 rounded-full mb-8 border border-neutral-700">
+            free forever, no card needed
+          </div>
         <div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 tracking-tight">
             Tasks you'll actually<br />
